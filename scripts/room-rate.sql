@@ -1,9 +1,3 @@
-CREATE TABLE room_rates (
-  id              SERIAL PRIMARY KEY,
-  zipcode         char(9) unique not null ,
-  price 		  numeric(10,2) not null CONSTRAINT positive_price CHECK (price > 0)
-);
-
 
 insert  into room_rates(zipcode, price) values ('97006', 120.50);
 insert  into room_rates(zipcode, price) values ('97229', 120.50);
