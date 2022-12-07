@@ -25,20 +25,6 @@ func run() error {
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv() // read value ENV variable
 
-	// 	Example config:
-
-	// module:
-	//     enabled: true
-	//     token: 89h3f98hbwf987h3f98wenf89ehf
-	// */
-	// type config struct {
-	// 	Module struct {
-	// 		Enabled bool
-
-	// 		moduleConfig `mapstructure:",squash"`
-	// 	}
-	// }
-
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 			// Config file not found; ignore error if desired

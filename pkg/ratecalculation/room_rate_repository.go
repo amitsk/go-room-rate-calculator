@@ -13,6 +13,8 @@ import (
 	_ "github.com/lib/pq"
 )
 
+var ErrNoChange = errors.New("no change")
+
 type roomRateRepository struct {
 	db *sql.DB
 }
@@ -50,11 +52,15 @@ func (s *roomRateRepository) RunMigrations() error {
 	}
 
 	err = m.Up()
-
-	switch err {
-	case errors.New("no change"):
-		fmt.Println("schema applied, No change")
-		return nil
+	if err != nil {
+		fmt.Printf("Error on up is %s\n", err)
+		switch {
+		case errors.Is(err, migrate.ErrNoChange):
+			fmt.Println(" No schema change, continue...")
+			return nil
+		default:
+			return err
+		}
 	}
 
 	return nil
