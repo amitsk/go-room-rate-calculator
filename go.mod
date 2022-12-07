@@ -4,6 +4,8 @@ go 1.19
 
 replace github.com/amitsk/go-room-rate-calculator => ../pkg
 
+require go.uber.org/zap v1.24.0
+
 require (
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/golang-migrate/migrate v3.5.4+incompatible // indirect
@@ -23,6 +25,7 @@ require (
 	github.com/spf13/viper v1.14.0 // indirect
 	github.com/subosito/gotenv v1.4.1 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
+	go.uber.org/multierr v1.8.0 // indirect
 	golang.org/x/sys v0.0.0-20220908164124-27713097b956 // indirect
 	golang.org/x/text v0.4.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect

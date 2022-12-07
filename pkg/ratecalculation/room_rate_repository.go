@@ -3,7 +3,6 @@ package ratecalculation
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"path/filepath"
 	"runtime"
 
@@ -11,21 +10,24 @@ import (
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/lib/pq"
+	"go.uber.org/zap"
 )
 
 var ErrNoChange = errors.New("no change")
 
 type roomRateRepository struct {
-	db *sql.DB
+	db     *sql.DB
+	logger *zap.Logger
 }
 
-func NewRoomRateRepository(postgresDb *sql.DB) *roomRateRepository {
+func NewRoomRateRepository(postgresDb *sql.DB, logger *zap.Logger) *roomRateRepository {
 	return &roomRateRepository{
-		db: postgresDb,
+		db:     postgresDb,
+		logger: logger,
 	}
 }
 
-func (r *roomRateRepository) GetRoomRate(zipCode string) (RoomRate, error) {
+func (r *roomRateRepository) GetRoomRate(zipCode string) (float32, error) {
 	return 110.0, nil
 }
 
@@ -35,11 +37,9 @@ func (s *roomRateRepository) RunMigrations() error {
 	basePath := filepath.Join(filepath.Dir(b), "../..")
 
 	migrationsPath := filepath.Join("file://", basePath, "/pkg/ratecalculation/migrations/")
-	fmt.Println(migrationsPath)
 
 	driver, err := postgres.WithInstance(s.db, &postgres.Config{})
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 
@@ -47,16 +47,14 @@ func (s *roomRateRepository) RunMigrations() error {
 		migrationsPath,
 		"postgres", driver)
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 
 	err = m.Up()
 	if err != nil {
-		fmt.Printf("Error on up is %s\n", err)
 		switch {
 		case errors.Is(err, migrate.ErrNoChange):
-			fmt.Println(" No schema change, continue...")
+			s.logger.Info(" No schema change, continue...")
 			return nil
 		default:
 			return err

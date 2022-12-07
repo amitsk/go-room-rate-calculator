@@ -8,6 +8,7 @@ import (
 	"github.com/amitsk/go-room-rate-calculator/pkg/adapters"
 	"github.com/amitsk/go-room-rate-calculator/pkg/ratecalculation"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 )
 
 func main() {
@@ -18,6 +19,8 @@ func main() {
 }
 
 func run() error {
+	logger, _ := zap.NewProduction()
+	defer logger.Sync()           // flushes buffer, if any
 	viper.SetConfigName("config") // config file name without extension
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")
@@ -28,11 +31,13 @@ func run() error {
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 			// Config file not found; ignore error if desired
-			fmt.Println("No config file: default \n", err)
+			logger.Error("No config file: default \n",
+				zap.Error(err))
 			os.Exit(1)
 		} else {
 			// Config file was found but another error was produced
-			fmt.Println("fatal error config file: default \n", err)
+			logger.Error("fatal error config file: default \n",
+				zap.Error(err))
 			os.Exit(1)
 		}
 	}
@@ -53,14 +58,16 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	fmt.Println("Successfully connected to Database")
+	logger.Info("Successfully connected to Database")
 	// create storage dependency
-	roomRateRepository := ratecalculation.NewRoomRateRepository(db)
+	roomRateRepository := ratecalculation.NewRoomRateRepository(db, logger)
 
 	err = roomRateRepository.RunMigrations()
 
 	if err != nil {
 		return err
 	}
+	roomRate, _ := roomRateRepository.GetRoomRate("97006")
+	logger.Info("Room rate for 97006", zap.Float32("rate", roomRate))
 	return nil
 }
