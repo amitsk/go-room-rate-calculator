@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS room_rates;
+DROP TABLE IF EXISTS public.room_rates;

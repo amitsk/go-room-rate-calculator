@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/amitsk/go-room-rate-calculator/pkg/adapters"
+	"github.com/amitsk/go-room-rate-calculator/pkg/ratecalculation"
 	"github.com/spf13/viper"
 )
 
@@ -57,20 +58,20 @@ func run() error {
 	pgPwd := viper.GetString("database.roomrate.pwd")
 	pgDb := viper.GetString("database.roomrate.db")
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
-		"password=%s dbname=%s sslmode=disable",
+		"password=%s dbname=%s search_path=public",
 		pgHost, pgPort, pgUser, pgPwd, pgDb)
 
 	// Declare vars
 
-	_, err := adapters.SetupDatabase(psqlInfo)
+	db, err := adapters.SetupDatabase(psqlInfo)
 	if err != nil {
 		return err
 	}
 	fmt.Println("Successfully connected to Database")
 	// create storage dependency
-	// roomRateRepository := ratecalculation.NewRoomRateRepository(db)
+	roomRateRepository := ratecalculation.NewRoomRateRepository(db)
 
-	// err = roomRateRepository.RunMigrations("postges")
+	err = roomRateRepository.RunMigrations()
 
 	if err != nil {
 		return err
