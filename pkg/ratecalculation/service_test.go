@@ -37,7 +37,8 @@ func Test_weekDayAdjustment(t *testing.T) {
 		args args
 		want float64
 	}{
-		// TODO: Add test cases.
+		{name: "non-weekday", args: args{weekday: time.Monday}, want: 1.0},
+		{name: "non-weekday", args: args{weekday: time.Friday}, want: 1.2},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
