@@ -36,11 +36,11 @@ func (s *roomRateService) GetRoomRate(zipCode ZipCode) (RoomRate, error) {
 	if err != nil {
 		return RoomRate(math.NaN()), errors.New("error fetching base room rate")
 	}
-	dayAdjustedRate := dateAdjustment(time.Now()) * baseRate
+	dayAdjustedRate := dateAdjustment(time.Now(), weekDayAdjustment, monthAdjustment) * baseRate
 	return dayAdjustedRate + dayAdjustedRate*taxRate, nil
 }
 
-func dateAdjustment(now time.Time) float64 {
+func dateAdjustment(now time.Time, wkDayAdj func(time.Weekday) float64, monAdj func(month time.Month) float64) float64 {
 	// date needs to be local timezone, not utc
 	_, month, _ := now.Date()
 	weekday := now.Weekday()

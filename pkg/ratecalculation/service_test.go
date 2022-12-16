@@ -6,44 +6,11 @@ import (
 	"time"
 )
 
-func Test_roomRateService_GetRoomRate(t *testing.T) {
-	type fields struct {
-		roomRateRepository RoomRateRepository
-		taxRateRepository  TaxRateRepository
-	}
-	type args struct {
-		zipCode ZipCode
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    RoomRate
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &roomRateService{
-				roomRateRepository: tt.fields.roomRateRepository,
-				taxRateRepository:  tt.fields.taxRateRepository,
-			}
-			got, err := s.GetRoomRate(tt.args.zipCode)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("roomRateService.GetRoomRate() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("roomRateService.GetRoomRate() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func Test_dateAdjustment(t *testing.T) {
 	type args struct {
-		now time.Time
+		now      time.Time
+		wkDayAdj func(time.Weekday) float64
+		monAdj   func(month time.Month) float64
 	}
 	tests := []struct {
 		name string
@@ -54,7 +21,7 @@ func Test_dateAdjustment(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := dateAdjustment(tt.args.now); got != tt.want {
+			if got := dateAdjustment(tt.args.now, tt.args.wkDayAdj, tt.args.monAdj); got != tt.want {
 				t.Errorf("dateAdjustment() = %v, want %v", got, tt.want)
 			}
 		})
@@ -96,6 +63,41 @@ func Test_monthAdjustment(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := monthAdjustment(tt.args.month); got != tt.want {
 				t.Errorf("monthAdjustment() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_roomRateService_GetRoomRate(t *testing.T) {
+	type fields struct {
+		roomRateRepository RoomRateRepository
+		taxRateRepository  TaxRateRepository
+	}
+	type args struct {
+		zipCode ZipCode
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    RoomRate
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &roomRateService{
+				roomRateRepository: tt.fields.roomRateRepository,
+				taxRateRepository:  tt.fields.taxRateRepository,
+			}
+			got, err := s.GetRoomRate(tt.args.zipCode)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("roomRateService.GetRoomRate() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("roomRateService.GetRoomRate() = %v, want %v", got, tt.want)
 			}
 		})
 	}
