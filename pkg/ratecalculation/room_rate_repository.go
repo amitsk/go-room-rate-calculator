@@ -27,7 +27,7 @@ func NewRoomRateRepository(postgresDb *sql.DB, logger *zap.Logger) *roomRateRepo
 	}
 }
 
-func (r *roomRateRepository) GetRoomRate(zipCode string) (float32, error) {
+func (r *roomRateRepository) GetBaseRoomRate(zipCode ZipCode) (float32, error) {
 	return 110.0, nil
 }
 

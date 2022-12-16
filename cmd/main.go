@@ -67,7 +67,7 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	roomRate, _ := roomRateRepository.GetRoomRate("97006")
+	roomRate, _ := roomRateRepository.GetBaseRoomRate("97006")
 	logger.Info("Room rate for 97006", zap.Float32("rate", roomRate))
 	return nil
 }

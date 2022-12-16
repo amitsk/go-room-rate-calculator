@@ -1,3 +1,17 @@
 package ratecalculation
 
-type TaxRateRepository interface{}
+import "go.uber.org/zap"
+
+type taxRateRepository struct {
+	logger *zap.Logger
+}
+
+func (t *taxRateRepository) GetTaxRate(zipCode ZipCode) (TaxRate, error) {
+	return TaxRate(0.0), nil
+}
+
+func NewTaxRateRepository(logger *zap.Logger) *taxRateRepository {
+	return &taxRateRepository{
+		logger: logger,
+	}
+}
