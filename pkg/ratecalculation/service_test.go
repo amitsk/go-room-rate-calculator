@@ -6,28 +6,6 @@ import (
 	"time"
 )
 
-func Test_dateAdjustment(t *testing.T) {
-	type args struct {
-		now      time.Time
-		wkDayAdj func(time.Weekday) float64
-		monAdj   func(month time.Month) float64
-	}
-	tests := []struct {
-		name string
-		args args
-		want float64
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := dateAdjustment(tt.args.now, tt.args.wkDayAdj, tt.args.monAdj); got != tt.want {
-				t.Errorf("dateAdjustment() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func Test_weekDayAdjustment(t *testing.T) {
 	type args struct {
 		weekday time.Weekday
@@ -73,6 +51,7 @@ func Test_roomRateService_GetRoomRate(t *testing.T) {
 	type fields struct {
 		roomRateRepository RoomRateRepository
 		taxRateRepository  TaxRateRepository
+		dateAdjustment     DateAdjustment
 	}
 	type args struct {
 		zipCode ZipCode
@@ -91,6 +70,7 @@ func Test_roomRateService_GetRoomRate(t *testing.T) {
 			s := &roomRateService{
 				roomRateRepository: tt.fields.roomRateRepository,
 				taxRateRepository:  tt.fields.taxRateRepository,
+				dateAdjustment:     tt.fields.dateAdjustment,
 			}
 			got, err := s.GetRoomRate(tt.args.zipCode)
 			if (err != nil) != tt.wantErr {

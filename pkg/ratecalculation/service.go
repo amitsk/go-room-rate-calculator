@@ -14,15 +14,21 @@ type TaxRateRepository interface {
 	GetTaxRate(zipCode ZipCode) (TaxRate, error)
 }
 
+type DateAdjustment func(time.Time) float64
+
 type roomRateService struct {
 	roomRateRepository RoomRateRepository
 	taxRateRepository  TaxRateRepository
+	dateAdjustment     DateAdjustment
 }
 
-func NewRoomRateService(roomRateRepository RoomRateRepository, taxRaterepository TaxRateRepository) *roomRateService {
+func NewRoomRateService(roomRateRepository RoomRateRepository,
+	taxRaterepository TaxRateRepository, dateAdjustment DateAdjustment,
+) *roomRateService {
 	return &roomRateService{
 		roomRateRepository: roomRateRepository,
 		taxRateRepository:  taxRaterepository,
+		dateAdjustment:     dateAdjustment,
 	}
 }
 
@@ -36,15 +42,25 @@ func (s *roomRateService) GetRoomRate(zipCode ZipCode) (RoomRate, error) {
 	if err != nil {
 		return RoomRate(math.NaN()), errors.New("error fetching base room rate")
 	}
-	dayAdjustedRate := dateAdjustment(time.Now(), weekDayAdjustment, monthAdjustment) * baseRate
+	dayAdjustedRate := s.dateAdjustment(time.Now()) * baseRate
 	return dayAdjustedRate + dayAdjustedRate*taxRate, nil
 }
 
-func dateAdjustment(now time.Time, wkDayAdj func(time.Weekday) float64, monAdj func(month time.Month) float64) float64 {
-	// date needs to be local timezone, not utc
-	_, month, _ := now.Date()
-	weekday := now.Weekday()
-	return monthAdjustment(month) * weekDayAdjustment(weekday)
+func NewMonthAndWeekDayAdjustment() DateAdjustment {
+	return monthAndWeekDayAdjustment(weekDayAdjustment, monthAdjustment)
+}
+
+func monthAndWeekDayAdjustment(
+	wkDayAdj func(time.Weekday) float64,
+	monAdj func(month time.Month) float64,
+) DateAdjustment {
+	f := func(now time.Time) float64 {
+		// date needs to be local timezone, not utc
+		_, month, _ := now.Date()
+		weekday := now.Weekday()
+		return monAdj(month) * wkDayAdj(weekday)
+	}
+	return f
 }
 
 func weekDayAdjustment(weekday time.Weekday) float64 {
