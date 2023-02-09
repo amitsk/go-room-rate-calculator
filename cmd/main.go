@@ -20,8 +20,8 @@ func main() {
 
 func run() error {
 	logger, _ := zap.NewProduction()
-	defer logger.Sync()           // flushes buffer, if any
-	viper.SetConfigName("config") // config file name without extension
+	defer logger.Sync()                 // flushes buffer, if any
+	viper.SetConfigName("config.local") // config file name without extension
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")
 	viper.AddConfigPath("./config/") // config file path
@@ -42,7 +42,7 @@ func run() error {
 		}
 	}
 	// Set default value
-
+	// EXPORT creds as DATABASE_ROOMRATE_USER/PWD/DB
 	pgUser := viper.GetString("database.roomrate.user")
 	pgHost := viper.GetString("database.roomrate.host")
 	pgPort := viper.GetInt("database.roomrate.port")
@@ -61,13 +61,27 @@ func run() error {
 	logger.Info("Successfully connected to Database")
 	// create storage dependency
 	roomRateRepository := ratecalculation.NewRoomRateRepository(db, logger)
+	taxRateRepository := ratecalculation.NewTaxRateRepository(logger)
+	dayAdjustment := ratecalculation.NewMonthAndWeekDayAdjustment()
+
+	roomRateService := ratecalculation.NewRoomRateService(
+		roomRateRepository,
+		taxRateRepository,
+		dayAdjustment,
+	)
 
 	err = roomRateRepository.RunMigrations()
 
 	if err != nil {
 		return err
 	}
-	roomRate, _ := roomRateRepository.GetBaseRoomRate("97006")
-	logger.Info("Room rate for 97006", zap.Float32("rate", roomRate))
+	zipcode := "97006"
+
+	roomRate, err := roomRateService.GetRoomRate(zipcode)
+	if err != nil {
+		return err
+	}
+	logger.Info("Room rate for zipcode", zap.String("zipcode", zipcode), zap.Float64("rate", roomRate))
+
 	return nil
 }

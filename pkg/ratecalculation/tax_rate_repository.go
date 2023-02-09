@@ -7,7 +7,7 @@ type taxRateRepository struct {
 }
 
 func (t *taxRateRepository) GetTaxRate(zipCode ZipCode) (TaxRate, error) {
-	return TaxRate(0.0), nil
+	return TaxRate(0.15), nil
 }
 
 func NewTaxRateRepository(logger *zap.Logger) *taxRateRepository {

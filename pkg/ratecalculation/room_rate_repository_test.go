@@ -21,7 +21,7 @@ func Test_roomRateRepository_GetBaseRoomRate(t *testing.T) {
 		name    string
 		fields  fields
 		args    args
-		want    float32
+		want    float64
 		wantErr bool
 	}{
 		// TODO: Add test cases.

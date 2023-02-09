@@ -3,6 +3,7 @@ package ratecalculation
 import (
 	"database/sql"
 	"errors"
+	"math"
 	"path/filepath"
 	"runtime"
 
@@ -27,8 +28,17 @@ func NewRoomRateRepository(postgresDb *sql.DB, logger *zap.Logger) *roomRateRepo
 	}
 }
 
-func (r *roomRateRepository) GetBaseRoomRate(zipCode ZipCode) (float32, error) {
-	return 110.0, nil
+func (r *roomRateRepository) GetBaseRoomRate(zipCode ZipCode) (RoomRate, error) {
+	// return 110.0, nile
+	row := r.db.QueryRow("SELECT price FROM room_rates WHERE zipcode=$1", zipCode)
+	var baseRate RoomRate
+	err := row.Scan(&baseRate)
+	if err != nil {
+		return math.MaxFloat64, err
+	}
+	r.logger.Info(" Completed Database call to fetch room rate...")
+
+	return baseRate, nil
 }
 
 func (s *roomRateRepository) RunMigrations() error {

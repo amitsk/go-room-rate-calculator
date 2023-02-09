@@ -1,6 +1,0 @@
-app:
-  env:  "development"
-database:
-  roomrate:
-    host: 192.168.1.23
-    port: 5432
