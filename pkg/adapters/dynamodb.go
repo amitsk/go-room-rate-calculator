@@ -2,38 +2,26 @@ package adapters
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
-type DynamoTable struct {
-	DynamoDbClient *dynamodb.Client
-	TableName      string
+type DB struct {
+	Client *dynamodb.Client
+	Table  string
 }
 
-// TableExists determines whether a DynamoDB table exists.
-func (table DynamoTable) TableExists() (bool, error) {
-	exists := true
-	_, err := table.DynamoDbClient.DescribeTable(
-		context.TODO(), &dynamodb.DescribeTableInput{TableName: aws.String(table.TableName)},
-	)
-	if err != nil {
-		var notFoundEx *types.ResourceNotFoundException
-		if errors.As(err, &notFoundEx) {
-			log.Printf("Table %v does not exist.\n", table.TableName)
-			err = nil
-		} else {
-			log.Printf("Couldn't determine existence of table %v. Here's why: %v\n", table.TableName, err)
-		}
-		exists = false
-	}
-	return exists, err
+func NewDB(t string) DB {
+	cfg, _ := config.LoadDefaultConfig(context.Background())
+	c := dynamodb.NewFromConfig(cfg)
+
+	return DB{Client: c, Table: t}
 }
 
 type ZipcodeTaxRate struct {
@@ -57,10 +45,10 @@ func (zipcodeTax ZipcodeTaxRate) String() string {
 		zipcodeTax.Zipcode, zipcodeTax.Rate)
 }
 
-func (table DynamoTable) TaxRate(zip string) (ZipcodeTaxRate, error) {
+func (table DB) TaxRate(zip string) (ZipcodeTaxRate, error) {
 	zipcodeRate := ZipcodeTaxRate{Zipcode: zip}
-	response, err := table.DynamoDbClient.GetItem(context.TODO(), &dynamodb.GetItemInput{
-		Key: zipcodeRate.GetKey(), TableName: aws.String(table.TableName),
+	response, err := table.Client.GetItem(context.Background(), &dynamodb.GetItemInput{
+		Key: zipcodeRate.GetKey(), TableName: aws.String(table.Table),
 	})
 	if err != nil {
 		log.Printf("Couldn't get info about %v. Here's why: %v\n", zip, err)

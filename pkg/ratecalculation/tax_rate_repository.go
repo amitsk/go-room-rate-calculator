@@ -1,6 +1,7 @@
 package ratecalculation
 
 import (
+	"github.com/amitsk/go-room-rate-calculator/pkg/adapters"
 	"go.uber.org/zap"
 )
 
@@ -11,7 +12,12 @@ type taxRateRepository struct {
 }
 
 func (t *taxRateRepository) GetTaxRate(zipCode ZipCode) (TaxRate, error) {
-	return TaxRate(0.15), nil
+	db := adapters.NewDB("TaxRates")
+	zipRate, err := db.TaxRate(zipCode)
+	if err != nil {
+		return 0.0, err
+	}
+	return float64(zipRate.Rate), nil
 }
 
 func NewTaxRateRepository(logger *zap.Logger) *taxRateRepository {
