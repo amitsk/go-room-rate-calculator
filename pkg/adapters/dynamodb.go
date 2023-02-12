@@ -7,6 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
@@ -18,7 +19,20 @@ type DB struct {
 }
 
 func NewDB(t string) DB {
-	cfg, _ := config.LoadDefaultConfig(context.Background())
+	cfg, _ := config.LoadDefaultConfig(context.Background(),
+		// config.WithRegion("us-east-1"),
+		config.WithEndpointResolverWithOptions(aws.EndpointResolverWithOptionsFunc(
+			func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+				return aws.Endpoint{URL: "http://localhost:9000"}, nil
+			},
+		)),
+		config.WithCredentialsProvider(credentials.StaticCredentialsProvider{
+			Value: aws.Credentials{
+				AccessKeyID: "dummy", SecretAccessKey: "dummy", SessionToken: "dummy",
+				Source: "Hard-coded credentials; values are irrelevant for local DynamoDB",
+			},
+		}),
+	)
 	c := dynamodb.NewFromConfig(cfg)
 
 	return DB{Client: c, Table: t}
@@ -45,10 +59,10 @@ func (zipcodeTax ZipcodeTaxRate) String() string {
 		zipcodeTax.Zipcode, zipcodeTax.Rate)
 }
 
-func (table DB) TaxRate(zip string) (ZipcodeTaxRate, error) {
+func (db DB) TaxRate(zip string) (ZipcodeTaxRate, error) {
 	zipcodeRate := ZipcodeTaxRate{Zipcode: zip}
-	response, err := table.Client.GetItem(context.Background(), &dynamodb.GetItemInput{
-		Key: zipcodeRate.GetKey(), TableName: aws.String(table.Table),
+	response, err := db.Client.GetItem(context.Background(), &dynamodb.GetItemInput{
+		Key: zipcodeRate.GetKey(), TableName: aws.String(db.Table),
 	})
 	if err != nil {
 		log.Printf("Couldn't get info about %v. Here's why: %v\n", zip, err)
